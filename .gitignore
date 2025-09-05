@@ -1,0 +1,49 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Uploaded files
+uploads/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Model / NLP cache
+*.whl
+*.tar.gz
+*.pth
+*.bin
+*.pt
+*.onnx
+
+# NLTK / SpaCy / HuggingFace cache
+nltk_data/
+.spacy/
+transformers/
+sentence_transformers/
+huggingface/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Test reports
+htmlcov/
+.coverage
+.cache/

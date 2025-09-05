@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS Resume Checker for Technical Roles</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Add these styles to your existing CSS */
+    .file-name {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      color: rgba(255, 255, 255, 0.8);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+      display: none;
+    }
+    
+    .upload-box.has-file .file-name {
+      display: block;
+    }
+    
+    .upload-box.has-file span {
+      color: #4ade80; /* Change color when file is selected */
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Upload Section -->
+  <div class="container">
+    <h1>ATS Resume Checker for Technical Roles</h1>
+    <p class="tagline">Optimize your resume for software, data, and IT careers</p>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="/analyze" enctype="multipart/form-data" id="upload-form">
+      <label for="resume" class="upload-box" id="resume-box">
+        <input type="file" id="resume" name="resume" accept="application/pdf" required>
+        <span><i class="fas fa-file-pdf"></i> Upload Your Resume (PDF)</span>
+        <div class="file-name" id="resume-name"></div>
+      </label>
+
+      <label for="job_description" class="upload-box" id="jd-box">
+        <input type="file" id="job_description" name="job_description" accept="application/pdf" required>
+        <span><i class="fas fa-file-pdf"></i> Upload Job Description (PDF)</span>
+        <div class="file-name" id="jd-name"></div>
+      </label>
+
+      <button type="submit" class="analyze-button">
+        <i class="fas fa-chart-line"></i> Analyze Resume
+      </button>
+    </form>
+    
+    <!-- Loading indicator -->
+    <div id="loading" style="display: none;">
+      <p>Analyzing your resume... This may take a moment.</p>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <section class="features">
+    <h2>Make Your Resume Stand Out in Tech</h2>
+
+    <div class="feature-row">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/Dart throw.png') }}" alt="Target Resume">
+      </div>
+      <div class="feature-text">
+        <h3>🎯 Hit the mark with a tailored technical resume</h3>
+        <p>Craft resumes customized for software engineering, data science, and IT job descriptions.</p>
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/light bulb over resume.png') }}" alt="Smart Resume">
+      </div>
+      <div class="feature-text">
+        <h3>💡 Smart feedback on skills & projects</h3>
+        <p>Get AI-powered suggestions on missing technologies, coding projects, and formatting improvements.</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/charts and graphs.png') }}" alt="ATS Score">
+      </div>
+      <div class="feature-text">
+        <h3>📊 Improve your ATS score</h3>
+        <p>See how well your resume matches technical job postings and optimize it for recruiters & bots.</p>
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/girl jumping with joy.png') }}" alt="Dream Job">
+      </div>
+      <div class="feature-text">
+        <h3>🎉 Land your dream tech role</h3>
+        <p>Stand out with a resume that highlights your coding, problem-solving, and technical expertise.</p>
+      </div>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/improve skills.png') }}" alt="Improve Skills">
+      </div>
+      <div class="feature-text">
+        <h3>🧑‍💻 Highlight in-demand technical skills</h3>
+        <p>Identify missing programming languages, frameworks, or tools that top employers want.</p>
+      </div>
+    </div>
+
+    <div class="feature-row reverse">
+      <div class="feature-img">
+        <img src="{{ url_for('static', filename='images/employer and employee.png') }}" alt="Employers">
+      </div>
+      <div class="feature-text">
+        <h3>🤝 Get noticed by top tech employers</h3>
+        <p>A well-optimized technical resume improves recruiter visibility and boosts callback chances.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>Built by <strong>Ranjan Kumar Sarkar</strong></p>
+      <p>Optimized for <strong>Technical Roles</strong></p>
+      <div class="social-links">
+        <a href="https://www.linkedin.com/in/ranjan-kumar-sarkar/" target="_blank" aria-label="LinkedIn">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://github.com/Ranjan-10000" target="_blank" aria-label="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 ATS Resume Checker. For Technical Roles Only.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Show loading indicator when form is submitted
+    document.getElementById('upload-form').addEventListener('submit', function() {
+      document.getElementById('loading').style.display = 'block';
+    });
+    
+    // Display selected file names
+    document.getElementById('resume').addEventListener('change', function(e) {
+      const fileName = e.target.files[0].name;
+      document.getElementById('resume-name').textContent = fileName;
+      document.getElementById('resume-box').classList.add('has-file');
+    });
+    
+    document.getElementById('job_description').addEventListener('change', function(e) {
+      const fileName = e.target.files[0].name;
+      document.getElementById('jd-name').textContent = fileName;
+      document.getElementById('jd-box').classList.add('has-file');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+# Core Framework
+Flask==2.3.3
+Werkzeug==2.3.7
+
+# PDF Processing
+pdfplumber==0.10.3
+PyPDF2==3.0.1
+
+# Natural Language Processing
+nltk==3.8.1
+spacy==3.7.2
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.0/en_core_web_sm-3.7.0-py3-none-any.whl
+
+# Text Processing & Fuzzy Matching
+rapidfuzz==3.5.2
+python-Levenshtein==0.21.1
+fuzzywuzzy==0.18.0
+
+# Machine Learning & Semantic Analysis
+sentence-transformers==2.2.2
+transformers==4.35.2
+torch==2.1.0
+torchvision==0.16.0
+scikit-learn==1.3.2
+numpy==1.24.3
+pandas==2.0.3
+
+# Data Visualization
+matplotlib==3.7.2
+seaborn==0.12.2
+chart.js==0.0.0  # For HTML templates
+
+# Utilities & Helpers
+python-dotenv==1.0.0
+python-magic==0.4.27
+Pillow==10.0.1
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# Spell Checking
+pyspellchecker==0.7.2
+
+# Date/Time Processing
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Security
+bcrypt==4.0.1
+cryptography==41.0.4
+
+# Development & Testing
+pytest==7.4.2
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.1.0
+autopep8==2.0.4
+
+# Web & API
+gunicorn==21.2.0
+Flask-CORS==4.0.0
+
+# System & OS
+python-multipart==0.0.6
+psutil==5.9.5
+
+# Optional: For enhanced functionality
+textstat==0.7.3  # Readability metrics
+langdetect==1.0.9  # Language detection
+keybert==0.7.0  # Keyword extraction
+sumy==0.11.0  # Text summarization

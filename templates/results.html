@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Analysis Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-gradient: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --text-light: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --improve-color: #f87171;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            --border-radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+        
+        .score-highlight {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .score-highlight h2 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-muted);
+        }
+        
+        .final-score {
+            font-size: 4rem;
+            font-weight: 700;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .score-description {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        @media (max-width: 900px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .feedback-sections {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        
+        .feedback-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .category-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .category-score {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .feedback-content {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        /* AI Feedback Styles - Updated for better distinction */
+        .ai-feedback-success {
+            background: rgba(74, 222, 128, 0.1);
+            border-left: 4px solid var(--success-color);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .ai-feedback-improvement {
+            background: rgba(96, 165, 250, 0.1);
+            border-left: 4px solid #60a5fa;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .ai-feedback-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .ai-feedback-header.success {
+            color: var(--success-color);
+        }
+
+        .ai-feedback-header.improvement {
+            color: #60a5fa;
+        }
+
+        .ai-feedback-text {
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* Skills Sections */
+        .details-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .details-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .skills-section {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .skills-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            font-weight: 600;
+        }
+
+        .missing-skills .skills-header {
+            color: #f87171;
+        }
+
+        .existing-skills .skills-header {
+            color: #4ade80;
+        }
+
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .skill-tag {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .skill-tag.missing {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .skill-tag.existing {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        /* Experience Section */
+        .experience-section {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid #8b5cf6;
+            width: 100%;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+            font-weight: 600;
+            color: #8b5cf6;
+            font-size: 1.1rem;
+        }
+
+        .experience-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .experience-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .experience-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+
+        .experience-stat i {
+            color: #8b5cf6;
+            width: 20px;
+        }
+
+        /* Quantifiable Achievements Styles */
+        .quantifiable-section {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid #8b5cf6;
+            width: 100%;
+        }
+
+        .achievements-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            line-height: 1.4;
+        }
+
+        .achievement-item i {
+            color: #4ade80;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .achievement-item span {
+            flex: 1;
+        }
+
+        .no-achievements {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: #9ca3af;
+            font-style: italic;
+            padding: var(--spacing-sm);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: var(--spacing-xl);
+            gap: var(--spacing-md);
+        }
+        
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .score-100 { color: #4ade80; }
+        .score-80 { color: #a3e635; }
+        .score-60 { color: #fde047; }
+        .score-40 { color: #fb923c; }
+        .score-20 { color: #f87171; }
+        .score-0 { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Resume Analysis Complete</h1>
+            <p>Detailed breakdown of your resume's ATS compatibility</p>
+        </div>
+        
+        <div class="score-highlight">
+            <h2>Your Overall ATS Score</h2>
+            <div class="final-score">{{ "%.0f"|format(final_score) }}%</div>
+            <p class="score-description">
+                {% if final_score >= 80 %}
+                Excellent! Your resume is well optimized for ATS systems.
+                {% elif final_score >= 60 %}
+                Good job! Your resume is mostly ATS-friendly with some areas for improvement.
+                {% elif final_score >= 40 %}
+                Fair. Your resume needs several improvements to perform well in ATS systems.
+                {% else %}
+                Needs significant improvement to pass through ATS filters effectively.
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Skill Distribution</h3>
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>Category Scores</h3>
+                <div class="chart-container">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feedback-sections">
+        <!-- Dynamic AI Feedback Sections -->
+        {% for item in feedback %}
+        <div class="feedback-card">
+            <div class="feedback-header">
+                <h3 class="category-name">{{ item.category }}</h3>
+                <div class="category-score score-{{ (item.score // 20) * 20 }}">{{ "%.0f"|format(item.score) }}/100</div>
+            </div>
+            
+            <!-- AI Feedback Container - Different styling based on score -->
+            {% if item.score == 100 %}
+            <div class="ai-feedback-success">
+                <div class="ai-feedback-header success">
+                    <i class="fas fa-trophy"></i>
+                    <span>What You Did Right</span>
+                </div>
+                <div class="ai-feedback-text">
+                    {{ item.semantic_feedback }}
+                </div>
+            </div>
+            {% else %}
+            <div class="ai-feedback-improvement">
+                <div class="ai-feedback-header improvement">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>AI-Driven Suggestions</span>
+                </div>
+                <div class="ai-feedback-text">
+                    {{ item.semantic_feedback }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Additional Details Section -->
+            {% if item.details %}
+                <!-- Skills Section -->
+                {% if item.category == "Skill Matching" %}
+                <div class="details-container">
+                    {% if item.details.missing_skills and item.details.missing_skills|length > 0 %}
+                    <div class="skills-section missing-skills">
+                        <div class="skills-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Skills to Develop ({{ item.details.missing_skills|length }})</span>
+                        </div>
+                        <div class="skills-list">
+                            {% for skill in item.details.missing_skills %}
+                            <span class="skill-tag missing">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.details.matched_skills and item.details.matched_skills|length > 0 %}
+                    <div class="skills-section existing-skills">
+                        <div class="skills-header">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Skills You Have ({{ item.details.matched_skills|length }})</span>
+                        </div>
+                        <div class="skills-list">
+                            {% for skill in item.details.matched_skills %}
+                            <span class="skill-tag existing">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Experience Section -->
+                {% if item.category == "Experience Relevance" %}
+                <div class="experience-section">
+                    <div class="section-header">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Experience Details</span>
+                    </div>
+                    <div class="experience-details">
+                        <div class="experience-stat">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span><strong>Total Experience:</strong> {{ item.details.total_years|default(0) }} years</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-bullseye"></i>
+                            <span><strong>Role Match Score:</strong> {{ "%.0f"|format(item.details.role_match_score|default(0)) }}%</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-crosshairs"></i>
+                            <span><strong>Target Role:</strong> {{ item.details.jd_title|default('N/A') }}</span>
+                        </div>
+                        {% if item.details.resume_text %}
+                        <div class="experience-stat">
+                            <i class="fas fa-file-alt"></i>
+                            <span><strong>Content Available:</strong> Ready for analysis</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Projects Section -->
+                {% if item.category == "Skill Usage in Projects" %}
+                <div class="details-container">
+                    {% if item.details.skills_missing and item.details.skills_missing|length > 0 %}
+                    <div class="skills-section missing-skills">
+                        <div class="skills-header">
+                            <i class="fas fa-code"></i>
+                            <span>Skills Missing in Projects</span>
+                        </div>
+                        <div class="skills-list">
+                            {% for skill in item.details.skills_missing %}
+                            <span class="skill-tag missing">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.details.skills_found and item.details.skills_found|length > 0 %}
+                    <div class="skills-section existing-skills">
+                        <div class="skills-header">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Skills Demonstrated</span>
+                        </div>
+                        <div class="skills-list">
+                            {% for skill in item.details.skills_found %}
+                            <span class="skill-tag existing">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Quantifiable Achievements Section -->
+                {% if item.category == "Quantifiable Achievements" %}
+                <div class="quantifiable-section">
+                    <div class="section-header">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Your Measurable Achievements ({{ item.details.achievements|length }})</span>
+                    </div>
+                    <div class="achievements-list">
+                        {% if item.details.achievements and item.details.achievements|length > 0 %}
+                            {% for achievement in item.details.achievements[:10] %}
+                            <div class="achievement-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>{{ achievement }}</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="no-achievements">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Add quantifiable metrics to demonstrate your impact (e.g., "Increased sales by 25%")</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Education Section -->
+                {% if item.category == "Education Alignment" %}
+                <div class="experience-section">
+                    <div class="section-header">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Education Match Analysis</span>
+                    </div>
+                    <div class="experience-details">
+                        <div class="experience-stat">
+                            <i class="fas fa-user-graduate"></i>
+                            <span><strong>Your Degree Level:</strong> {{ item.details.resume_details.level|default('Not specified') }}</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-bookmark"></i>
+                            <span><strong>Your Field:</strong> {{ item.details.resume_details.field|default('Not specified') }}</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-bullseye"></i>
+                            <span><strong>Required Level:</strong> {{ item.details.jd_details.level|default('Not specified') }}</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-star"></i>
+                            <span><strong>Field Match Score:</strong> {{ "%.0f"|format(item.details.field_score|default(0)) }}%</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Keywords Section -->
+                {% if item.category == "Keyword Optimization" %}
+                <div class="experience-section">
+                    <div class="section-header">
+                        <i class="fas fa-search"></i>
+                        <span>Keyword Analysis</span>
+                    </div>
+                    <div class="experience-details">
+                        <div class="experience-stat">
+                            <i class="fas fa-percentage"></i>
+                            <span><strong>Keyword Density:</strong> {{ "%.2f"|format(item.details.density|default(0)) }} per 100 words</span>
+                        </div>
+                        <div class="experience-stat">
+                            <i class="fas fa-key"></i>
+                            <span><strong>Keywords Found:</strong> {{ item.details.resume_keywords_found_counts|length|default(0) }}</span>
+                        </div>
+                        {% if item.details.resume_keywords_found_counts %}
+                        <div class="experience-stat">
+                            <i class="fas fa-trophy"></i>
+                            <span><strong>Top Keyword:</strong> 
+                            {% for keyword, count in item.details.resume_keywords_found_counts.items() %}
+                                {% if loop.index == 1 %}{{ keyword }} ({{ count }}x){% endif %}
+                            {% endfor %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+        {% endfor %}
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-redo"></i> Analyze Another Resume
+            </a>
+            <button class="btn btn-secondary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Pass data to JavaScript using data attributes -->
+    <div id="chart-data" 
+        data-scores='{{ scores|tojson }}'
+        data-final-score='{{ final_score }}'
+        style="display: none;">
+    </div>
+
+    <script>
+    // Get the data from the hidden div
+    const chartDataElement = document.getElementById('chart-data');
+    const scoresData = JSON.parse(chartDataElement.getAttribute('data-scores'));
+    
+    // Prepare data for charts
+    const labels = [];
+    const shortLabels = [];
+    const data = [];
+    
+    // Create mapping for full and short labels
+    const labelMap = {
+        "Skill Matching": "Skills",
+        "Experience Relevance": "Experience", 
+        "Skill Usage in Projects": "Projects",
+        "Quantifiable Achievements": "Achievements",
+        "Education Alignment": "Education",
+        "Keyword Optimization": "Keywords",
+        "Formatting Compliance": "Formatting"
+    };
+    
+    for (const category in scoresData) {
+        if (scoresData.hasOwnProperty(category)) {
+            labels.push(category);
+            shortLabels.push(labelMap[category]);
+            data.push(scoresData[category]);
+        }
+    }
+    
+    // Colors for the charts
+    const backgroundColors = [
+        'rgba(255, 255, 0, 0.4)',     // Yellow
+        'rgba(0, 128, 0, 0.4)',       // Green
+        'rgba(255, 192, 203, 0.4)',   // Pink
+        'rgba(255, 0, 0, 0.4)',       // Red
+        'rgba(119, 190, 240, 0.4)',   // #77BEF0
+        'rgba(255, 165, 0, 0.4)',     // Orange
+        'rgba(165, 42, 42, 0.4)'      // Brown
+    ];
+    
+    const borderColors = [
+        'rgba(54, 162, 235, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)',
+        'rgba(199, 199, 199, 1)',
+        'rgba(83, 102, 255, 1)'
+    ];
+    
+    // Create radar chart
+    const radarCtx = document.getElementById('radarChart').getContext('2d');
+    const radarChart = new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: shortLabels,
+            datasets: [{
+                label: 'Category Scores',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            elements: {
+                line: {
+                    borderWidth: 3
+                }
+            },
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true,
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    },
+                    pointLabels: {
+                        color: 'white',
+                        font: {
+                            family: "'Poppins', sans-serif",
+                            size: 12
+                        }
+                    },
+                    ticks: {
+                        display: true,
+                        color: 'white',
+                        backdropColor: 'transparent',
+                        stepSize: 20,
+                        font: {
+                            family: "'Poppins', sans-serif"
+                        }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'white',
+                        font: {
+                            family: "'Poppins', sans-serif"
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Create bar chart
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    const barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: shortLabels,
+            datasets: [{
+                label: 'Score',
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'white'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'white',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html>
