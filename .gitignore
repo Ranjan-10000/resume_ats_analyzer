@@ -1,49 +1,75 @@
-# Python cache
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
-
-# Virtual environments
-venv/
-env/
-.venv/
-
-# IDE settings
-.vscode/
-.idea/
-
-# OS junk
-.DS_Store
-Thumbs.db
-
-# Uploaded files
-uploads/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Environment variables
 .env
+.env.local
+.env.production
+.venv
+env/
+venv/
+ENV/
 
-# Logs
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application specific
+uploads/
 *.log
+*.pkl
+*.model
 
-# Model / NLP cache
-*.whl
-*.tar.gz
-*.pth
-*.bin
-*.pt
-*.onnx
-
-# NLTK / SpaCy / HuggingFace cache
+# ML/NLP data
 nltk_data/
-.spacy/
-transformers/
-sentence_transformers/
-huggingface/
+spacy_data/
+models/
+embeddings/
 
-# Jupyter Notebooks checkpoints
-.ipynb_checkpoints/
+# Railway
+.railway/
 
-# Test reports
-htmlcov/
+# Testing
 .coverage
-.cache/
+htmlcov/
+.tox/
+.pytest_cache/
+.cache
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# pyenv
+.python-version

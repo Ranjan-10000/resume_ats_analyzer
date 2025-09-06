@@ -166,6 +166,15 @@ import os
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, flash
 import re
+import tempfile
+
+# Make dotenv optional for development
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not installed, skip loading .env file
+    pass
 
 # Import all your analyzer classes
 from ats_analyzer.skill_matcher import SkillMatcher
@@ -179,14 +188,21 @@ from ats_analyzer.feedback_generator import FeedbackGenerator
 from ats_analyzer.pdf_processor import PDFProcessor
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this in production
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.jinja_env.cache = {}
 
-# Configure a temporary upload folder
-UPLOAD_FOLDER = 'uploads'
+# Production-ready configuration
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+app.config['TEMPLATES_AUTO_RELOAD'] = False if os.environ.get('RAILWAY_ENVIRONMENT') else True
+app.jinja_env.cache = None if os.environ.get('RAILWAY_ENVIRONMENT') else {}
+
+# Use system temp directory for Railway, local uploads folder for development
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    UPLOAD_FOLDER = tempfile.gettempdir()
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB limit
+else:
+    UPLOAD_FOLDER = 'uploads'
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Allowed extensions for file uploads
 ALLOWED_EXTENSIONS = {'pdf'}
@@ -234,15 +250,20 @@ def analyze():
             resume_text = resume_processor.extract_text()
             job_text = job_processor.extract_text()
 
-            print("===== RESUME TEXT PREVIEW =====")
-            print(resume_text[:2000])  # first 2000 chars
-            print("===============================")
+            # Only print debug info in development
+            if not os.environ.get('RAILWAY_ENVIRONMENT'):
+                print("===== RESUME TEXT PREVIEW =====")
+                print(resume_text[:2000])  # first 2000 chars
+                print("===============================")
 
             
             if not resume_text.strip() or not job_text.strip():
                 flash('Could not extract text from the uploaded PDFs. Please ensure they contain selectable text.')
-                os.remove(resume_path)
-                os.remove(jd_path)
+                # Clean up files
+                if os.path.exists(resume_path):
+                    os.remove(resume_path)
+                if os.path.exists(jd_path):
+                    os.remove(jd_path)
                 return redirect(url_for('index'))
                 
             resume_text_normalized = resume_processor.normalize_text(resume_text)
@@ -256,8 +277,11 @@ def analyze():
             keyword_score, keyword_details = KeywordChecker.calculate_keyword_score(resume_text, job_text)
             formatting_score, formatting_details = FormattingChecker.calculate_formatting_score(resume_text)
             
-            os.remove(resume_path)
-            os.remove(jd_path)
+            # Clean up uploaded files
+            if os.path.exists(resume_path):
+                os.remove(resume_path)
+            if os.path.exists(jd_path):
+                os.remove(jd_path)
             
             weights = { 
                 "skills": 0.40, 
@@ -307,7 +331,12 @@ def analyze():
             if os.path.exists(jd_path):
                 os.remove(jd_path)
                 
-            app.logger.error(f'Error during analysis: {str(e)}')
+            # Log error appropriately
+            if os.environ.get('RAILWAY_ENVIRONMENT'):
+                app.logger.error(f'Error during analysis: {str(e)}')
+            else:
+                print(f'Error during analysis: {str(e)}')
+                
             flash('An error occurred during analysis. Please try again with different files.')
             return redirect(url_for('index'))
 
@@ -315,4 +344,12 @@ def analyze():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=debug_mode,
+        threaded=True
+    )

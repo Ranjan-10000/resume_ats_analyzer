@@ -1,0 +1,12 @@
+{
+  "build": {
+    "commands": [
+      "pip install --no-cache-dir -r requirements.txt",
+      "python -m spacy download en_core_web_sm",
+      "python -c \"import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); nltk.download('omw-1.4', quiet=True)\""
+    ]
+  },
+  "deploy": {
+    "startCommand": "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1 --max-requests 1000 --max-requests-jitter 100 --preload"
+  }
+}
