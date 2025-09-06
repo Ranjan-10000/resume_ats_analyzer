@@ -9,7 +9,7 @@ spacy==3.7.2
 rapidfuzz==3.5.2
 python-Levenshtein==0.21.1
 fuzzywuzzy==0.18.0
-sentence-transformers==2.2.2
+sentence-transformers==3.0.1
 huggingface-hub==0.8.1
 transformers==4.35.2
 torch==2.1.0
