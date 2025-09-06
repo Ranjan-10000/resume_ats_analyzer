@@ -189,15 +189,23 @@ from ats_analyzer.pdf_processor import PDFProcessor
 
 app = Flask(__name__)
 
-# Production-ready configuration
+# Production-ready configuration for both Railway and Render
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
-app.config['TEMPLATES_AUTO_RELOAD'] = False if os.environ.get('RAILWAY_ENVIRONMENT') else True
-app.jinja_env.cache = None if os.environ.get('RAILWAY_ENVIRONMENT') else {}
 
-# Use system temp directory for Railway, local uploads folder for development
-if os.environ.get('RAILWAY_ENVIRONMENT'):
+# Detect production environment (Railway or Render)
+is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RENDER_ENVIRONMENT')
+
+app.config['TEMPLATES_AUTO_RELOAD'] = not is_production
+app.jinja_env.cache = None if is_production else {}
+
+# Use system temp directory for production, local uploads folder for development
+if is_production:
     UPLOAD_FOLDER = tempfile.gettempdir()
-    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB limit
+    # Render allows larger file uploads than Railway
+    if os.environ.get('RENDER_ENVIRONMENT'):
+        app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB limit
+    else:
+        app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB limit for Railway
 else:
     UPLOAD_FOLDER = 'uploads'
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -251,7 +259,7 @@ def analyze():
             job_text = job_processor.extract_text()
 
             # Only print debug info in development
-            if not os.environ.get('RAILWAY_ENVIRONMENT'):
+            if not is_production:
                 print("===== RESUME TEXT PREVIEW =====")
                 print(resume_text[:2000])  # first 2000 chars
                 print("===============================")
@@ -332,7 +340,7 @@ def analyze():
                 os.remove(jd_path)
                 
             # Log error appropriately
-            if os.environ.get('RAILWAY_ENVIRONMENT'):
+            if is_production:
                 app.logger.error(f'Error during analysis: {str(e)}')
             else:
                 print(f'Error during analysis: {str(e)}')
@@ -345,7 +353,7 @@ def analyze():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('RAILWAY_ENVIRONMENT') is None
+    debug_mode = not is_production
     
     app.run(
         host='0.0.0.0', 

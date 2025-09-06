@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ats-resume-checker
+    env: python
+    buildCommand: "pip install -r requirements.txt && python -m spacy download en_core_web_sm && python -c \"import nltk; nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True)\""
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.5
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RENDER_ENVIRONMENT
+        value: production
